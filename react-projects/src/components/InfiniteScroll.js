@@ -1,79 +1,64 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import InfiniteScroll from "react-infinite-scroll-component";
 
-const InfiniteScroll = () => {
+const InfiniteScrollExample = () => {
   const [page, setPage] = useState(1);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [hasMore, setHashMore] = useState(true);
 
   const limit = 10;
-  let total = 0;
   useEffect(() => {
-    fetchMoreData();
+    axios
+      .get(
+        `https://api.javascripttutorial.net/v1/quotes/?page=${page}&limit=${limit}`
+      )
+      .then((res) => setData(res.data.data))
+      .catch((err) => console.log(err));
   }, []);
-  const handleScroll = () => {
-    const { scrollTop, clientHight, scrollHeight } = document.documentElement;
-
-    if (scrollTop + clientHight >= scrollHeight - 10 && !loading) {
-      fetchMoreData();
-    }
-  };
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [handleScroll]);
 
   const fetchData = async () => {
-    const API_URL = `https://api.javascripttutorial.net/v1/quotes/?page=${page}&limit=${limit}`;
-    const response = await fetch(API_URL);
-    // handle 404
-    if (!response.ok) {
-      throw new Error(`An error occurred: ${response.status}`);
-    }
-    return await response.json();
-  };
-
-  const hasMoreQuotes = (page, limit, total) => {
-    const startIndex = (page - 1) * limit + 1;
-    return total === 0 || startIndex < total;
-  };
-
-  const fetchMoreData = async (page, limt) => {
-    setLoading(true);
-    setTimeout(async () => {
-      try {
-        if (hasMoreQuotes(page, limit, total)) {
-          const response = await fetchData();
-          setData(response.data);
-        }
-      } catch (error) {
-        console.log("eerrorr", error);
-      } finally {
-        setLoading(false);
-      }
-    }, 5000);
+    axios
+      .get(
+        `https://api.javascripttutorial.net/v1/quotes/?page=${page}&limit=${limit}`
+      )
+      .then((res) => {
+        setData((prevData) => [...prevData, ...res.data.data]);
+        res.data.data.length > 0 ? setHashMore(true) : setHashMore(false);
+      })
+      .catch((error) => console.log(error));
+    setPage((prevPage) => prevPage + 1);
   };
 
   return (
     <>
-      <div className="container">
-        <h1>Programming Quotes</h1>
-        <div className="quotes">
-          {data?.map((quote) => {
-            return (
-              <div className="quote" key={quote.id}>
-                <span>{quote.id}</span>
-                {quote.quote}
-                <p>{quote.author}</p>
-              </div>
-            );
-          })}
+      <InfiniteScroll
+        dataLength={data.length}
+        next={fetchData}
+        hasMore={hasMore}
+        loader={
+          <div>
+            <h1>Loading...</h1>
+          </div>
+        }
+      >
+        <div className="container">
+          <h1>Programming Quotes</h1>
+          <div className="quotes">
+            {data?.map((quote) => {
+              return (
+                <div className="quote" key={quote.id}>
+                  <span>{quote.id}</span>
+                  {quote.quote}
+                  <p>{quote.author}</p>
+                </div>
+              );
+            })}
+          </div>
         </div>
-        {loading && <h3>Loading...</h3>}
-      </div>
+      </InfiniteScroll>
     </>
   );
 };
-export default InfiniteScroll;
+export default InfiniteScrollExample;
