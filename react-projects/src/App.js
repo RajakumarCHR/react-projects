@@ -1,12 +1,16 @@
 import "./App.css";
 import Header from "./components/Header";
-import InfiniteScroll from "./components/InfiniteScroll";
+import InfiniteScrollExample from "./components/InfiniteScroll";
+import GridLayout from "./components/GridLayout";
+import TodoApp from "./components/TodoApp";
 
 function App() {
   return (
     <div className="App">
       <Header />
-      <InfiniteScroll />
+      {/* <InfiniteScrollExample /> */}
+      {/* <GridLayout /> */}
+      <TodoApp />
     </div>
   );
 }
